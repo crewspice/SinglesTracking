@@ -9,7 +9,7 @@ options(tigris_use_cache = TRUE)
 
 state_codes <- c(state.abb, "DC")
 names(state_codes) <- state_codes
-age_groups <- read_rds("C:/Users/jacks/Documents/R/ages.rds")
+age_groups <- read_rds("C:/Users/jacks/OneDrive/Documents/R/ages.rds")
 
 # Cache the blocks to prevent download errors
 # purrr::walk(state_codes, ~blocks(state = .x, year = 2016))
@@ -31,6 +31,26 @@ state_dots <- purrr::map(state_codes, ~{
  state_groups <- age_groups %>%
     filter(str_sub(GEOID, end = 2) == tigris:::validate_state(.x))
 
-    group_names <- names(immigrant_groups)[3:11]
+group_names <- names(immigrant_groups)[3:11]
 
+ joined_tracts <- state_with_rac %>%
+    left_join(age_groups, by = c("tract_id" = "GEOID")) %>%
+    mutate_at(vars(europe:canada), ~if_else(is.na(.x), 0L, .x))
+  
+  all_dots <- map(group_names, function(name) {
+    print(glue::glue("Processing {name}..."))
+    suppressMessages(st_sample(joined_tracts, size = joined_tracts[[name]], 
+                               exact = TRUE)) %>%
+      st_sf() %>%
+      mutate(group = name) %>%
+      st_transform(4326) 
+  }) %>%
+    reduce(rbind) %>%
+    slice_sample(prop = 1)
+  
+  # Write state dataset to temp file to guard against unforeseen errors
+  write_rds(all_dots, glue::glue("data/temp/{.x}_dots.rds"))
+  
+  return(all_dots)
+})
   
