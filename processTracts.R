@@ -31,11 +31,11 @@ state_dots <- purrr::map(state_codes, ~{
  state_groups <- age_groups %>%
     filter(str_sub(GEOID, end = 2) == tigris:::validate_state(.x))
 
-group_names <- names(immigrant_groups)[3:11]
+group_names <- names(age_groups)[15:20]
 
  joined_tracts <- state_with_rac %>%
     left_join(age_groups, by = c("tract_id" = "GEOID")) %>%
-    mutate_at(vars(europe:canada), ~if_else(is.na(.x), 0L, .x))
+    mutate_at(vars(surplus_females_early20s:surplus_males_all20s), ~if_else(is.na(.x), 0L, .x))
   
   all_dots <- map(group_names, function(name) {
     print(glue::glue("Processing {name}..."))
