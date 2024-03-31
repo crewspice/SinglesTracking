@@ -37,6 +37,24 @@ ages_grouped <- ages_data %>%
              all20s = all_early20s + all_late20s,
              females_pct_20s = females20s / all20s * 100,
              females_pct_early20s = females_early20s / all_early20s * 100,
-             females_pct_late20s = females_late20s / all_late20s * 100)
+             females_pct_late20s = females_late20s / all_late20s * 100,
+             surplus_females_early20s = if_else(females_early20s - males_early20s > 0,
+                                                females_early20s - males_early20s,
+                                                NA_real_),
+             surplus_males_early20s = if_else(males_early20s - females_early20s > 0,
+                                                males_early20s - females_early20s,
+                                                NA_real_),
+             surplus_females_late20s = if_else(females_late20s - males_late20s > 0,
+                                                females_late20s - males_late20s,
+                                                NA_real_),
+             surplus_males_late20s = if_else(males_late20s - females_late20s > 0,
+                                                males_late20s - females_late20s,
+                                                NA_real_),
+             surplus_females_all20s = if_else(females20s - males20s > 0,
+                                                females20s - males20s,
+                                                NA_real_),
+             surplus_males_all20s = if_else(males20s - females20s > 0,
+                                                males20s - females20s,
+                                                NA_real_))
 
 write_rds(ages_grouped, "C:/Users/jacks/Documents/R/ages.rds")
