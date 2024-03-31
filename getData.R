@@ -57,4 +57,4 @@ ages_grouped <- ages_data %>%
                                                 males20s - females20s,
                                                 NA_real_))
 
-write_rds(ages_grouped, "C:/Users/jacks/Documents/R/ages.rds")
+write_rds(ages_grouped, "C:/Users/jacks/OneDrive/Documents/R/ages.rds")
