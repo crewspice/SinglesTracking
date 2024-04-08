@@ -11,11 +11,11 @@ state_codes <- c(state.abb, "DC")
 names(state_codes) <- state_codes
 
 # Get index of CT and DE in state_codes
-index_CT <- which(state_codes == "CT")
+#index_CT <- which(state_codes == "CT")
 index_DE <- which(state_codes == "DE")
 
 # Subset state_codes array from CT to DE
-subset_states <- state_codes[index_CT:index_DE]
+subset_states <- state_codes[index_DE:index_DE]
 
 age_groups <- read_rds("C:/Users/jacks/OneDrive/Documents/R/ages.rds")
 
@@ -76,29 +76,32 @@ write_rds(state_dots, "C:/Users/jacks/OneDrive/Documents/R/temp/state_dots_list.
 
 # Then, combine
 # state_dots_combined <- read_rds("data/temp/state_dots_list.rds")
-state_dots_combined <- state_dots %>%
-  data.table::rbindlist() %>%
-  st_as_sf(crs = 4326)
+#state_dots_combined <- state_dots %>%
+#  data.table::rbindlist() %>%
+#  st_as_sf(crs = 4326)
 
-# Define the command to run Tippecanoe
-command <- "C:\Users\jacks\OneDrive\Documents\Git Repositories\tippecanoe"
+# the following chunk from chatGPT about how to resolve class mismatch between the columns of the two items being combined
+# Convert all geometries to points
+state_dots_combined <- lapply(state_dots, function(x) {
+  st_geometry(x) <- st_point_on_surface(st_geometry(x))
+  x
+})
 
-# Define Tippecanoe options
-options <- c(
-  "-o data/state_dots3.mbtiles", 
-  "--layer=state_dots3",
-  "--maxzoom=12",
-  "--minzoom=3",
-  "--droprate=2"
-)
+# Now, bind the items
+state_dots_combined <- data.table::rbindlist(state_dots_combined)
 
-# Construct the full command
-full_command <- paste(command, paste(options, collapse = " "), sep = " ")
+# Convert to sf object
+state_dots_combined <- st_as_sf(state_dots_combined, crs = 4326)
 
-# Execute the command
-system(full_command)
+st_write(state_dots_combined, "C:/Users/jacks/OneDrive/Documents/R/state_dots_combined.geojson")
 
-upload_tiles("data/state_dots3.mbtiles", 
+# stop here and run tippiecanoe on ubuntu
+# code for state_dots_combined:
+# ./tippecanoe -o /mnt/c/Users/jacks/OneDrive/Documents/R/state_dots_combined.mbtiles --layer=state_dots3 -zg --minimum-zoom=3 /mnt/c/Users/jacks/OneDrive/Documents/R/state_dots_combined.geojson
+
+# i couldn't get this to work so far. i think the next troubleshooting step would be to 
+# reach out to mapbox support with the error that i'm getting.
+upload_tiles("C:/Users/jacks/OneDrive/Documents/R/state_dots_combined.mbtiles", 
              username = "crewspice",
-	     access_token = "pk.eyJ1IjoiY3Jld3NwaWNlIiwiYSI6ImNsc3M1ZGtwbzBhZ3cyaXJ4YzZvNmRxd20ifQ.UOYUuzL9Aybx7R7Q92A3YQ"
+	#     access_token = "sk.eyJ1IjoiY3Jld3NwaWNlIiwiYSI6ImNsdXE5cDRwcTJnd24yaWxob2owZGd1YWYifQ.g8x_NZVNC_gn3l20yBQ38Q",
              tileset_name = "state_dots3")
